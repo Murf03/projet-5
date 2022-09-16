@@ -48,10 +48,11 @@ function createKanap(product) {
     kanapElmArt.appendChild(kanapElmName);
     kanapElmArt.appendChild(kanapElmDesc);
 
-    var kanapElm = document.createElement('a', { href: '#' });
+    var kanapElm = document.createElement('a');
+    var link = "./product.html?id=" + product._id;
     kanapElm.setAttribute(
         'href',
-        '#',
+        link,
     );
     kanapElm.setAttribute(
         'alt',
