@@ -8,7 +8,6 @@ function initProductPage(params) {
     if (searchParams.has('id')) {
 
         id = searchParams.get('id');
-        console.log(id);
     }
     return id;
 }
@@ -37,21 +36,21 @@ function itemTxt(name, id) {
 
 function handleChange(event) {
     var colors = document.getElementById("colors");
-    console.log(event.target.value);
-    childs = colors.childNodes;
-    let n = childs.length;
+    var childs = colors.childNodes;
     colors.removeChild(childs[0]);
     colors.removeChild(childs[0]);
     colors.removeEventListener("change", handleChange);
-
-    // colors.addEventListener('change', (e) => {
-    //     qtity.setAttribute(
-    //         'value',
-    //         event.target.value,
-    //     );
-    //     console.log(event.target.value);
-    // });
-
+    colors.setAttribute(
+        'value',
+        event.target.value,
+    );
+    colors.addEventListener('change', (event) => {
+        colors.setAttribute(
+            'value',
+            event.target.value,
+        );
+        console.log(event.target.value);
+    });
 }
 
 function itemColors(cols) {
@@ -70,6 +69,10 @@ function itemColors(cols) {
         option.appendChild(colName);
         colors.appendChild(option);
     }
+    colors.setAttribute(
+        'value',
+        0,
+    );
     colors.addEventListener('change', handleChange);
 }
 
@@ -86,6 +89,10 @@ function qtityCount(price) {
     qtity.setAttribute(
         'value',
         1,
+    );
+    qtity.setAttribute(
+        'pattern',
+        "^[1-9][0-9]?$|^100$",
     );
     qtity.setAttribute(
         'style',
@@ -118,8 +125,33 @@ function editPage(product) {
     qtityCount(product.price);
 }
 
+function handleAddToCart(id) {
+    var qtity = document.getElementById("quantity").getAttribute("value");
+    var color = document.getElementById("colors").getAttribute("value");
+
+    let k = id + " " + color;
+    let v = Number(localStorage.getItem(k));
+    if (v != null) {
+        v += Number(qtity);
+        localStorage.setItem(k, v);
+    }
+    else {
+        let key = id + " " + color;
+        let value = qtity;
+        localStorage.setItem(key, value);
+    }
+}
+
+function butListen(id) {
+    var btn = document.getElementById("addToCart");
+    btn.addEventListener('click', (event) => {
+        handleAddToCart(id);
+    });
+}
+
 async function getProductData(params) {
     let ID = initProductPage();
+    localStorage.clear();
     var api = "http://localhost:3000/api/products/" + ID;
     var product = await fetch(api)
         .then(function (res) {
@@ -141,6 +173,7 @@ async function getProductData(params) {
         });
 
     editPage(product);
+    butListen(product._id);
 }
 
 getProductData();
