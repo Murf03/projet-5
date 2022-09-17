@@ -126,20 +126,28 @@ function editPage(product) {
 }
 
 function handleAddToCart(id) {
-    var qtity = document.getElementById("quantity").getAttribute("value");
-    var color = document.getElementById("colors").getAttribute("value");
+    let colors = document.getElementById("colors");
+    if (colors.value != null && colors.value != "") {
+        var qtity = document.getElementById("quantity").getAttribute("value");
+        var color = colors.getAttribute("value");
 
-    let k = id + " " + color;
-    let v = Number(localStorage.getItem(k));
-    if (v != null) {
-        v += Number(qtity);
-        localStorage.setItem(k, v);
+        let k = id + " " + color;
+        let v = Number(localStorage.getItem(k));
+        if (v != null) {
+            v += Number(qtity);
+            localStorage.setItem(k, v);
+        }
+        else {
+            let key = id + " " + color;
+            let value = qtity;
+            localStorage.setItem(key, value);
+        }
     }
     else {
-        let key = id + " " + color;
-        let value = qtity;
-        localStorage.setItem(key, value);
+        console.log("Peut pas");
+        //Afficher Toast ?
     }
+
 }
 
 function butListen(id) {
@@ -151,7 +159,6 @@ function butListen(id) {
 
 async function getProductData(params) {
     let ID = initProductPage();
-    localStorage.clear();
     var api = "http://localhost:3000/api/products/" + ID;
     var product = await fetch(api)
         .then(function (res) {
