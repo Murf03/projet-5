@@ -208,7 +208,7 @@ async function editPageN(params) {
         let id = key[0];
         let col = key[1];
         let val = localStorage.getItem(id + " " + col);
-        console.log(id, val);
+        //console.log(id, val);
 
         var product = await getItemData(id);
         console.log(product);
@@ -284,15 +284,18 @@ async function editPageN(params) {
             val,
         );
         inpt.setAttribute(
+            'id',
+            id + " " + col + " input",
+        );
+        inpt.setAttribute(
             'pattern',
             "^[1-9][0-9]?$|^100$",
         );
+        let laCle = id + " " + col;
         inpt.addEventListener('input', (event) => {
-            var priceElm = document.getElementById(id + " " + col);
-            // priceElm.setAttribute(
-            //     'value',
-            //     (product.price * event.target.value) + " €",
-            // );
+            var priceElm = document.getElementById(laCle);
+            var priceValue = priceElm.getAttribute('price');
+
             if (event.target.value > 0 && event.target.value < 101) {
 
                 var childs = priceElm.childNodes;
@@ -304,9 +307,56 @@ async function editPageN(params) {
                         priceElm.removeChild(childs[i]);
                     }
                 }
-                var priceValue = priceElm.getAttribute('price');
+                console.log(document.getElementById(laCle + " input").getAttribute('value'));
                 var kName = document.createTextNode((priceValue * event.target.value) + " €");
                 priceElm.appendChild(kName);
+
+                let v = Number(localStorage.getItem(laCle));
+                localStorage.setItem(laCle, event.target.value);
+                console.log(localStorage);
+
+                var nbTotal = document.getElementById("totalQuantity");
+                var enf = nbTotal.childNodes;
+                for (let i = 0; i < enf.length; i++) {
+                    nbTotal.removeChild(enf[i]);
+                }
+                if (childs.length > 0) {
+                    for (let i = 0; i < enf.length; i++) {
+                        nbTotal.removeChild(enf[i]);
+                    }
+                }
+                let n = localStorage.length;
+                let nb = 0;
+                for (let i = 0; i < n; i++) {
+                    let key = localStorage.key(i).split(" ");
+                    let id = key[0];
+                    let col = key[1];
+                    let val = localStorage.getItem(id + " " + col);
+                    nb += Number(val);
+                }
+                nbTotal.setAttribute(
+                    'nb',
+                    nb,
+                );
+                if (enf.length > 0) {
+                    nbTotal.removeChild(enf[0]);
+                }
+                nbTotal.appendChild(document.createTextNode(nb));
+
+                var lePrix = 0;
+                var totalPrice = document.getElementById("totalPrice");
+                var children = totalPrice.childNodes;
+                for (let i = 0; i < n; i++) {
+                    let key = localStorage.key(i).split(" ");
+                    let id = key[0];
+                    let col = key[1];
+                    let val = Number(localStorage.getItem(id + " " + col));
+                    var amount = document.getElementById(id + " " + col).getAttribute('price');
+                    console.log(amount);
+                    lePrix += Number(amount) * val;
+                }
+                Array.from(children).forEach(el => el.remove());
+                totalPrice.appendChild(document.createTextNode(lePrix));
             }
         });
         var cart_qtite = document.createElement('div');
@@ -349,6 +399,35 @@ async function editPageN(params) {
 
         cart_items.appendChild(item);
     }
+    var total = document.getElementById("totalQuantity");
+    let n = localStorage.length;
+    let nb = 0;
+    for (let i = 0; i < n; i++) {
+        let key = localStorage.key(i).split(" ");
+        let id = key[0];
+        let col = key[1];
+        let val = localStorage.getItem(id + " " + col);
+        nb += Number(val);
+    }
+    total.setAttribute(
+        'nb',
+        nb,
+    );
+    total.appendChild(document.createTextNode(nb));
+
+    var lePrix = 0;
+    var totalPrice = document.getElementById("totalPrice");
+    for (let i = 0; i < n; i++) {
+        let key = localStorage.key(i).split(" ");
+        let id = key[0];
+        let col = key[1];
+        let val = Number(localStorage.getItem(id + " " + col));
+        var amount = document.getElementById(id + " " + col).getAttribute('price');
+        console.log(amount);
+        lePrix += Number(amount) * val;
+    }
+    totalPrice.appendChild(document.createTextNode(lePrix));
+
 }
 
 function displayCart(params) {
