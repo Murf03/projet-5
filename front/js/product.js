@@ -12,6 +12,37 @@ function initProductPage(params) {
     return id;
 }
 
+function addAnimations(params) {
+    // var animations = document.createElement("link");
+    // animations.setAttribute(
+    //     'href',
+    //     '../css/animations.css',
+    // );
+    // animations.setAttribute(
+    //     'rel',
+    //     'Stylesheet',
+    // );
+    var animations = document.createElement("style");
+    let slidein = " @keyframes slidein {from {transform: translateX(60%);opacity: 0;}to {transform: translateX(0%);opacity: 1;}}";
+    let slideinInv = "@keyframes slideinInv {from {transform:  translateX(60%) ;opacity: 0;}to {transform: translateX(0%);opacity: 0;}}";
+    let slideout = "@keyframes slideout {from {transform:  translateX(0%) ;opacity: 1;}to {transform: translateX(60%);opacity: 0;}}";
+    let content = slidein + "\n" + slideinInv + "\n" + slideout;
+
+
+    console.log(content);
+    animations.textContent = content;
+    // animations.setAttribute(
+    //     'href',
+    //     '../css/animations.css',
+    // );
+    // animations.setAttribute(
+    //     'rel',
+    //     'Stylesheet',
+    // );
+    var head = document.querySelector("head");
+    head.appendChild(animations);
+}
+
 function itemImg(name, imageUrl) {
     var img = document.createElement('img');
     let imgAlt = "Image de " + name;
@@ -73,6 +104,10 @@ function itemColors(cols) {
         'value',
         0,
     );
+    colors.setAttribute(
+        'colors',
+        cols,
+    );
     colors.addEventListener('change', handleChange);
 }
 
@@ -104,6 +139,7 @@ function qtityCount(price) {
             event.target.value,
         );
         if (event.target.value > 0 && event.target.value < 101) {
+            removeItemTxt("price");
             removeItemTxt("price");
             var parent = document.getElementById("price");
             var childs = parent.childNodes;
@@ -142,13 +178,14 @@ function handleAddToCart(id) {
             let value = qtity;
             localStorage.setItem(key, value);
         }
+        addToast(true);
     }
     else {
-        console.log("Peut pas");
-        //Afficher Toast ?
+        addToast(false);
     }
-
 }
+
+let intrvalID = null;
 
 function butListen(id) {
     var btn = document.getElementById("addToCart");
@@ -157,8 +194,161 @@ function butListen(id) {
     });
 }
 
+function success(params) {
+    let topM = "Ajouté(s) au panier !";
+    let topColor = "green";
+    let timerColor = 'blue';
+    return [topM, topColor, timerColor];
+}
+
+function fail(params) {
+    let topM = "Erreur ..";
+    let topColor = "red";
+    let timerColor = 'orange';
+    return [topM, topColor, timerColor];
+}
+
+function addToast(isSuccess) {
+    var lastToast = document.getElementById("toast");
+    var m = document.querySelector("main > div > section > article");
+    if (lastToast != null) {
+        lastToast.style.animation = "0s slideout";
+        m.removeChild(lastToast);
+    }
+    let data = [];
+    if (isSuccess) {
+        data = success();
+    }
+    else {
+        data = fail();
+    }
+    var topDiv = document.createElement('div');
+    topDiv.setAttribute(
+        'style',
+        "color: " + data[1] + "; font-size: 22px; padding-left: 15px;  padding-top: 10px;",
+    );
+    var topTxt = document.createTextNode(data[0]);
+    topDiv.appendChild(topTxt);
+
+    var botDiv = document.createElement('div');
+    botDiv.setAttribute(
+        'style',
+        "color: black; font-size: 17px; padding-left: 15px; padding-bottom: 18px;",
+    );
+    var desc;
+    if (isSuccess) {
+        var qtity = Number(document.getElementById("quantity").getAttribute("value"));
+        var name = document.querySelector('title').text;
+        var colorsEl = document.getElementById("colors");
+        var colIndex = colorsEl.getAttribute('value');
+        var colors = colorsEl.getAttribute('colors').split(',');
+        var color = colors[colIndex];
+        desc = qtity + " " + name + " - couleur : " + color;
+    }
+    else {
+        desc = "Aucun élément n'a été ajouté au panier !";
+    }
+    var botTxt = document.createTextNode(desc);
+    botDiv.appendChild(botTxt);
+
+    var crossbtn = document.createElement('button');
+    crossbtn.setAttribute(
+        'style',
+        'position: absolute; cursor: pointer; top: 5px; right: 16px; border: none; background-color: white; font-size: 22px; font-weight: 700; color: rgba(0,0,0,0.75);',
+    );
+    var btnTxt = document.createTextNode("x");
+    crossbtn.appendChild(btnTxt);
+    crossbtn.addEventListener('click', (event) => {
+        removeToast();
+    });
+
+    var timeBarBack = document.createElement('div');
+    var timeBarFront = document.createElement('div');
+    var timerColor = data[2];
+    timeBarBack.setAttribute(
+        'style',
+        'background-color: white; width: 100%; height: 2.5px; position: absolute; bottom: 0px; overflow: hidden; align-items: end;',
+    );
+    timeBarFront.setAttribute(
+        'style',
+        'background-color: ' + timerColor + '; width: 100%; height: 3px;',
+    );
+    timeBarFront.setAttribute(
+        'id',
+        'toastAnim',
+    );
+    let w = window.screen.width * 0.25;
+    timeBarFront.setAttribute(
+        'v',
+        w,
+    );
+    timeBarFront.setAttribute(
+        'minus',
+        w / 256,
+    );
+    timeBarBack.appendChild(timeBarFront);
+
+    var toastDiv = document.createElement('div');
+    toastDiv.setAttribute(
+        'id',
+        'toast',
+    );
+    toastDiv.setAttribute(
+        'style',
+        "background-color: snow; overflow: hidden; color: red; width: 25%; min-width: 350px; height: 90px; max-height: 125px; animation: 1s slidein; max-height: 90px; border-radius: 15px 2.5px 2.5px 15px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; position : fixed; top: 6%; right: 1%; z-index: 100; translateX: 0%; rotate: 0deg;",
+    );
+    toastDiv.appendChild(topDiv);
+    toastDiv.appendChild(botDiv);
+    toastDiv.appendChild(crossbtn);
+    toastDiv.appendChild(timeBarBack);
+
+    m.appendChild(toastDiv);
+
+    if (intrvalID == null) {
+        intrvalID = setInterval(decreaseAnim, 15.625, [timerColor]);
+    }
+}
+
+function decreaseAnim(color) {
+    var toastAnim = document.getElementById('toastAnim');
+    var v = Number(toastAnim.getAttribute('v'));
+    var minus = Number(toastAnim.getAttribute('minus'));
+    var l = v - minus;
+    if (l <= 0) {
+        removeToast();
+    }
+    else {
+        toastAnim.style.color = color;
+        toastAnim.style.width = l + 'px';
+        toastAnim.setAttribute(
+            'v',
+            l,
+        );
+    }
+
+}
+
+function rmToast() {
+    var m = document.querySelector("main > div > section > article");
+    var toast = document.getElementById('toast');
+    if (toast != null) {
+        m.removeChild(toast);
+    }
+    clearInterval(intrvalID);
+    intrvalID = null;
+}
+
+function removeToast() {
+    var toast = document.getElementById('toast');
+    toast.style.animation = "1s slideout";
+
+    setTimeout(rmToast, 1000);
+}
+
 async function getProductData(params) {
     let ID = initProductPage();
+    addAnimations();
+
     var api = "http://localhost:3000/api/products/" + ID;
     var product = await fetch(api)
         .then(function (res) {

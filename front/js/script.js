@@ -99,4 +99,4 @@ async function getAllProducts(params) {
 
 }
 
-getAllProducts();
+document.body.onload = getAllProducts();
