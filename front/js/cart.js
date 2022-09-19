@@ -1,7 +1,213 @@
 /* Dynamic for cart.html */
 
+async function getItemData(ID) {
+    var api = "http://localhost:3000/api/products/" + ID;
+    var product = await fetch(api)
+        .then(function (res) {
+            if (res.ok) {
+                return res.json();
+            }
+        })
+        .then(function (value) {
+            let v;
+            if (value != undefined) {
+                v = value;
+            }
+            else v = {};
+            return v;
+        })
+        .catch(function (err) {
+            console.log("Une erreur est survenue");
+            return {};
+        });
+    return product;
+}
+
+function errorMessage(id, errorId) {
+    let label = {
+        firstName: 'Prénom',
+        lastName: 'Nom',
+        city: 'Ville'
+    };
+
+    var inpt = document.getElementById(id);
+    inpt.setAttribute(
+        'pattern',
+        "[a-zA-Z\-]{2,}",
+    );
+
+    var pC = document.getElementById(errorId);
+    pC.style.paddingTop = "10px";
+    pC.style.color = "orange";
+    if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+
+    inpt.addEventListener('input', (event) => {
+        let v = event.target.value;
+        inpt.setAttribute(
+            'value',
+            v,
+        );
+        var p = document.getElementById(errorId);
+        if (p.childNodes.length > 0) p.removeChild(p.childNodes[0]);
+        if (v.length == 0) {
+            var t = document.createTextNode("Veuillez remplir votre " + label[id]);
+            p.appendChild(t);
+        }
+        else if (v.length == 1) {
+            var t = document.createTextNode("Votre " + label[id] + " doit faire au moins 2 caractères");
+            p.appendChild(t);
+        }
+        else {
+            if (/[a-zA-Z\-]{2,}/g.test(v)) {
+                var pC = document.getElementById(errorId);
+                if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+            }
+        }
+    });
+}
+
+function errorAdresse() {
+    let id = 'address';
+    let errorId = "addressErrorMsg";
+    var inpt = document.getElementById(id);
+    inpt.setAttribute(
+        'pattern',
+        "[a-zA-Z0-9]{1,}[a-zA-Z\.0-9\ \'\,]{4,}",
+    );
+
+    var pC = document.getElementById(errorId);
+    pC.style.paddingTop = "10px";
+    pC.style.color = "orange";
+    if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+
+    inpt.addEventListener('input', (event) => {
+        let v = event.target.value;
+        inpt.setAttribute(
+            'value',
+            v,
+        );
+        var p = document.getElementById(errorId);
+        if (p.childNodes.length > 0) p.removeChild(p.childNodes[0]);
+        if (v.length == 0) {
+            var t = document.createTextNode("Veuillez remplir votre Adresse");
+            p.appendChild(t);
+        }
+        else if (v.length >= 1 && v.length <= 5) {
+            var t = document.createTextNode("Votre Adresse doit faire au moins 5 caractères");
+            p.appendChild(t);
+        }
+        else {
+            if (/[a-zA-Z0-9]{1,}[a-zA-Z\.0-9\ \'\,]{4,}/g.test(v)) {
+                var pC = document.getElementById(errorId);
+                if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+            }
+        }
+    });
+}
+
+function errorMail() {
+    let id = 'email';
+    let errorId = "emailErrorMsg";
+    var inpt = document.getElementById(id);
+    inpt.setAttribute(
+        'pattern',
+        "[a-zA-Z\.0-9]+@+[a-zA-Z\.0-9]{3,}",
+    );
+
+    var pC = document.getElementById(errorId);
+    pC.style.paddingTop = "10px";
+    pC.style.color = "orange";
+    if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+
+    inpt.addEventListener('input', (event) => {
+        let v = event.target.value;
+        inpt.setAttribute(
+            'value',
+            v,
+        );
+        var p = document.getElementById(errorId);
+        if (p.childNodes.length > 0) p.removeChild(p.childNodes[0]);
+        if (v.length == 0) {
+            var t = document.createTextNode("Veuillez remplir votre Mail");
+            p.appendChild(t);
+        }
+        else if (v.length >= 1 && v.length <= 5) {
+            var t = document.createTextNode("Votre Mail doit faire au moins 5 caractères");
+            p.appendChild(t);
+        }
+        else if (!v.includes('@')) {
+            var t = document.createTextNode("Votre Mail doit contenir le caractère @");
+            p.appendChild(t);
+        }
+        else {
+            if (/[a-zA-Z\.0-9]+@+[a-zA-Z\.0-9]{3,}/g.test(v)) {
+                var pC = document.getElementById(errorId);
+                if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+            }
+        }
+        //console.log(/[a-zA-Z\.0-9]+@+[a-zA-Z\.0-9]{3,}/g.test(v));
+    });
+}
+
+function getTextById(id) {
+    var el = document.getElementById(id);
+    let txt = el.getAttribute('value');
+    return txt;
+}
+
+async function handleOrder() {
+    let firstName = getTextById('firstName');
+    let lastName = getTextById('lastName');
+    let address = getTextById('address');
+    let city = getTextById('city');
+    let email = getTextById('email');
+    console.log(firstName, lastName, address, city, email);
+    let contact = {
+        firstName: firstName,
+        lastName: lastName,
+        address: address,
+        city: city,
+        email: email
+    };
+    let products = []
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i).split(" ");
+        let id = key[0];
+        products.push(id);
+    };
+
+    //Je suis là
+    var api = "http://localhost:3000/api/products/order";
+    var body = {
+        contact: contact,
+        products: products
+    };
+    let response = await fetch(api, {
+        method: 'POST',
+        body: JSON.stringify(body)
+    });
+
+    console.log(response);
+}
+
+async function commander(params) {
+    var btn = document.getElementById('order');
+    btn.setAttribute(
+        'formaction',
+        './confirmation.html',
+    );
+    btn.addEventListener('click', handleOrder);
+}
+
+
 async function editPageN(params) {
     document.title = "Panier";
+
+    errorMessage('firstName', 'firstNameErrorMsg');
+    errorMessage('lastName', 'lastNameErrorMsg');
+    errorAdresse();
+    errorMessage('city', 'cityErrorMsg');
+    errorMail();
 
     var cart_items = document.getElementById("cart__items");
     for (let i = 0; i < localStorage.length; i++) {
@@ -13,7 +219,6 @@ async function editPageN(params) {
         //console.log(id, val);
 
         var product = await getItemData(id);
-        console.log(product);
 
         //Start here
 
@@ -225,7 +430,6 @@ async function editPageN(params) {
         let col = key[1];
         let val = Number(localStorage.getItem(id + " " + col));
         var amount = document.getElementById(id + " " + col).getAttribute('price');
-        console.log(amount);
         lePrix += Number(amount) * val;
     }
     totalPrice.appendChild(document.createTextNode(lePrix));
@@ -237,6 +441,7 @@ function displayCart(params) {
 }
 
 displayCart();
+commander();
 
 /*
 
@@ -398,29 +603,6 @@ function cartItem(product, id, color, value) {
     item.appendChild(img);
     item.appendChild(content);
     return item;
-}
-
-async function getItemData(ID) {
-    var api = "http://localhost:3000/api/products/" + ID;
-    var product = await fetch(api)
-        .then(function (res) {
-            if (res.ok) {
-                return res.json();
-            }
-        })
-        .then(function (value) {
-            let v;
-            if (value != undefined) {
-                v = value;
-            }
-            else v = {};
-            return v;
-        })
-        .catch(function (err) {
-            console.log("Une erreur est survenue");
-            return {};
-        });
-    return product;
 }
 
 async function editPage(params) {

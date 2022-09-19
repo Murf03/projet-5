@@ -13,32 +13,13 @@ function initProductPage(params) {
 }
 
 function addAnimations(params) {
-    // var animations = document.createElement("link");
-    // animations.setAttribute(
-    //     'href',
-    //     '../css/animations.css',
-    // );
-    // animations.setAttribute(
-    //     'rel',
-    //     'Stylesheet',
-    // );
     var animations = document.createElement("style");
     let slidein = " @keyframes slidein {from {transform: translateX(60%);opacity: 0;}to {transform: translateX(0%);opacity: 1;}}";
     let slideinInv = "@keyframes slideinInv {from {transform:  translateX(60%) ;opacity: 0;}to {transform: translateX(0%);opacity: 0;}}";
     let slideout = "@keyframes slideout {from {transform:  translateX(0%) ;opacity: 1;}to {transform: translateX(60%);opacity: 0;}}";
     let content = slidein + "\n" + slideinInv + "\n" + slideout;
 
-
-    console.log(content);
     animations.textContent = content;
-    // animations.setAttribute(
-    //     'href',
-    //     '../css/animations.css',
-    // );
-    // animations.setAttribute(
-    //     'rel',
-    //     'Stylesheet',
-    // );
     var head = document.querySelector("head");
     head.appendChild(animations);
 }
@@ -127,7 +108,7 @@ function qtityCount(price) {
     );
     qtity.setAttribute(
         'pattern',
-        "^[1-9][0-9]?$|^100$",
+        "100|[1-9][0-9]|[1-9]",
     );
     qtity.setAttribute(
         'style',
