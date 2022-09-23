@@ -61,6 +61,16 @@ function errorMessage(id, errorId) {
             if (/[a-zA-Z\-]{2,}/g.test(v)) {
                 var pC = document.getElementById(errorId);
                 if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+                inpt.setAttribute(
+                    'test',
+                    true,
+                );
+            }
+            else {
+                inpt.setAttribute(
+                    'test',
+                    false,
+                );
             }
         }
     });
@@ -100,6 +110,16 @@ function errorAdresse() {
             if (/[a-zA-Z0-9]{1,}[a-zA-Z\.0-9\ \'\,]{4,}/g.test(v)) {
                 var pC = document.getElementById(errorId);
                 if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+                inpt.setAttribute(
+                    'test',
+                    true,
+                );
+            }
+            else {
+                inpt.setAttribute(
+                    'test',
+                    false,
+                );
             }
         }
     });
@@ -143,9 +163,18 @@ function errorMail() {
             if (/[a-zA-Z\.0-9]+@+[a-zA-Z\.0-9]{3,}/g.test(v)) {
                 var pC = document.getElementById(errorId);
                 if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
+                inpt.setAttribute(
+                    'test',
+                    true,
+                );
+            }
+            else {
+                inpt.setAttribute(
+                    'test',
+                    false,
+                );
             }
         }
-        //console.log(/[a-zA-Z\.0-9]+@+[a-zA-Z\.0-9]{3,}/g.test(v));
     });
 }
 
@@ -155,46 +184,214 @@ function getTextById(id) {
     return txt;
 }
 
+function getTestById(id) {
+    var el = document.getElementById(id);
+    let txt = el.getAttribute('test');
+    return txt;
+}
+
+let intrvalID = null;
+
+function addAnimations(params) {
+    var animations = document.createElement("style");
+    let slidein = " @keyframes slidein {from {transform: translateX(60%);opacity: 0;}to {transform: translateX(0%);opacity: 1;}}";
+    let slideinInv = "@keyframes slideinInv {from {transform:  translateX(60%) ;opacity: 0;}to {transform: translateX(0%);opacity: 0;}}";
+    let slideout = "@keyframes slideout {from {transform:  translateX(0%) ;opacity: 1;}to {transform: translateX(60%);opacity: 0;}}";
+    let content = slidein + "\n" + slideinInv + "\n" + slideout;
+
+    animations.textContent = content;
+    var head = document.querySelector("head");
+    head.appendChild(animations);
+}
+
+function fail(params) {
+    let topM = "Erreur ..";
+    let topColor = "red";
+    let timerColor = 'orange';
+    return [topM, topColor, timerColor];
+}
+
+function addToast() {
+    var lastToast = document.getElementById("toast");
+    var m = document.querySelector("main");
+    if (lastToast != null) {
+        lastToast.style.animation = "0s slideout";
+        m.removeChild(lastToast);
+    }
+    let data = fail();
+    var topDiv = document.createElement('div');
+    topDiv.setAttribute(
+        'style',
+        "color: " + data[1] + "; font-size: 22px; padding-left: 15px;  padding-top: 10px;",
+    );
+    var topTxt = document.createTextNode(data[0]);
+    topDiv.appendChild(topTxt);
+
+    var botDiv = document.createElement('div');
+    botDiv.setAttribute(
+        'style',
+        "color: black; font-size: 17px; padding-left: 15px; padding-bottom: 18px;",
+    );
+    var desc = "Veuillez entrer des informations valides";
+    var botTxt = document.createTextNode(desc);
+    botDiv.appendChild(botTxt);
+
+    var crossbtn = document.createElement('button');
+    crossbtn.setAttribute(
+        'style',
+        'position: absolute; cursor: pointer; top: 5px; right: 16px; border: none; background-color: white; font-size: 22px; font-weight: 700; color: rgba(0,0,0,0.75);',
+    );
+    var btnTxt = document.createTextNode("x");
+    crossbtn.appendChild(btnTxt);
+    crossbtn.addEventListener('click', (event) => {
+        removeToast();
+    });
+
+    var timeBarBack = document.createElement('div');
+    var timeBarFront = document.createElement('div');
+    var timerColor = data[2];
+    timeBarBack.setAttribute(
+        'style',
+        'background-color: white; width: 100%; height: 2.5px; position: absolute; bottom: 0px; overflow: hidden; align-items: end;',
+    );
+    timeBarFront.setAttribute(
+        'style',
+        'background-color: ' + timerColor + '; width: 100%; height: 3px;',
+    );
+    timeBarFront.setAttribute(
+        'id',
+        'toastAnim',
+    );
+    let w = window.screen.width * 0.25;
+    timeBarFront.setAttribute(
+        'v',
+        w,
+    );
+    timeBarFront.setAttribute(
+        'minus',
+        w / 256,
+    );
+    timeBarBack.appendChild(timeBarFront);
+
+    var toastDiv = document.createElement('div');
+    toastDiv.setAttribute(
+        'id',
+        'toast',
+    );
+    toastDiv.setAttribute(
+        'style',
+        "background-color: snow; overflow: hidden; color: red; width: 25%; min-width: 350px; height: 90px; max-height: 125px; animation: 1s slidein; max-height: 90px; border-radius: 15px 2.5px 2.5px 15px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; position : fixed; top: 6%; right: 1%; z-index: 100; translateX: 0%; rotate: 0deg;",
+    );
+    toastDiv.appendChild(topDiv);
+    toastDiv.appendChild(botDiv);
+    toastDiv.appendChild(crossbtn);
+    toastDiv.appendChild(timeBarBack);
+
+    m.appendChild(toastDiv);
+
+    if (intrvalID == null) {
+        intrvalID = setInterval(decreaseAnim, 15.625, [timerColor]);
+    }
+}
+
+function decreaseAnim(color) {
+    var toastAnim = document.getElementById('toastAnim');
+    var v = Number(toastAnim.getAttribute('v'));
+    var minus = Number(toastAnim.getAttribute('minus'));
+    var l = v - minus;
+    if (l <= 0) {
+        removeToast();
+    }
+    else {
+        toastAnim.style.color = color;
+        toastAnim.style.width = l + 'px';
+        toastAnim.setAttribute(
+            'v',
+            l,
+        );
+    }
+
+}
+
+function rmToast() {
+    var m = document.querySelector("main");
+    var toast = document.getElementById('toast');
+    if (toast != null) {
+        m.removeChild(toast);
+    }
+    clearInterval(intrvalID);
+    intrvalID = null;
+}
+
+function removeToast() {
+    var toast = document.getElementById('toast');
+    toast.style.animation = "1s slideout";
+
+    setTimeout(rmToast, 1000);
+}
+
+function formValid(f, l, a, v, m) {
+    return f && l && a && v && m;
+}
+
 async function handleOrder() {
-    let firstName = getTextById('firstName');
-    let lastName = getTextById('lastName');
-    let address = getTextById('address');
-    let city = getTextById('city');
-    let email = getTextById('email');
-    console.log(firstName, lastName, address, city, email);
-    let contact = {
-        firstName: firstName,
-        lastName: lastName,
-        address: address,
-        city: city,
-        email: email
+    let prenom = getTextById('firstName');
+    let nom = getTextById('lastName');
+    let addresse = getTextById('address');
+    let ville = getTextById('city');
+    let mail = getTextById('email');
+
+    let prenomTest = getTestById('firstName');
+    let nomTest = getTestById('lastName');
+    let addresseTest = getTestById('address');
+    let villeTest = getTestById('city');
+    let mailTest = getTestById('email');
+
+    let userInfos = {
+        firstName: prenom,
+        lastName: nom,
+        address: addresse,
+        city: ville,
+        email: mail
     };
-    let products = []
+    let ids = []
     for (let i = 0; i < localStorage.length; i++) {
         let key = localStorage.key(i).split(" ");
         let id = key[0];
-        products.push(id);
+        ids.push(id);
     };
-
-    //Je suis là
     var api = "http://localhost:3000/api/products/order";
-    var body = {
-        contact: contact,
-        products: products
+    let body = {
+        contact: userInfos,
+        products: ids
     };
     let response = await fetch(api, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json;charset=utf-8'
+        },
         body: JSON.stringify(body)
     });
 
-    console.log(response);
+    if (response.ok) {
+        let data = await response.json();
+        var btn = document.getElementById('order');
+        window.location.href = './confirmation.html?orderID=' + data["orderId"];
+    }
+    else {
+        addToast();
+    }
 }
 
 async function commander(params) {
     var btn = document.getElementById('order');
     btn.setAttribute(
-        'formaction',
-        './confirmation.html',
+        'formmethod',
+        'dialog',
+    );
+    btn.setAttribute(
+        'formnovalidate',
+        true,
     );
     btn.addEventListener('click', handleOrder);
 }
@@ -440,6 +637,7 @@ function displayCart(params) {
     editPageN();
 }
 
+addAnimations();
 displayCart();
 commander();
 
