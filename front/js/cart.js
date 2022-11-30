@@ -56,7 +56,7 @@ function errorMessage(id, errorId) {
         else if (v.length == 1) {
             var t = document.createTextNode("Votre " + label[id] + " doit faire au moins 2 caractères");
             p.appendChild(t);
-        }
+        }/*
         else {
             if (/[a-zA-Z\-]{2,}/g.test(v)) {
                 var pC = document.getElementById(errorId);
@@ -72,7 +72,7 @@ function errorMessage(id, errorId) {
                     false,
                 );
             }
-        }
+        }*/
     });
 }
 
@@ -105,7 +105,7 @@ function errorAdresse() {
         else if (v.length >= 1 && v.length <= 5) {
             var t = document.createTextNode("Votre Adresse doit faire au moins 5 caractères");
             p.appendChild(t);
-        }
+        }/*
         else {
             if (/[a-zA-Z0-9]{1,}[a-zA-Z\.0-9\ \'\,]{4,}/g.test(v)) {
                 var pC = document.getElementById(errorId);
@@ -121,7 +121,7 @@ function errorAdresse() {
                     false,
                 );
             }
-        }
+        }*/
     });
 }
 
@@ -158,9 +158,11 @@ function errorMail() {
         else if (!v.includes('@')) {
             var t = document.createTextNode("Votre Mail doit contenir le caractère @");
             p.appendChild(t);
-        }
+        }/*
         else {
-            if (/[a-zA-Z\.0-9]+@+[a-zA-Z\.0-9]{3,}/g.test(v)) {
+            const reg = new RegExp("[a-zA-Z\.0-9]{3,}@[a-zA-Z\.0-9]{3,}");
+            console.log(v);
+            if (reg.test(v)) {
                 var pC = document.getElementById(errorId);
                 if (pC.childNodes.length > 0) pC.removeChild(pC.childNodes[0]);
                 inpt.setAttribute(
@@ -174,7 +176,7 @@ function errorMail() {
                     false,
                 );
             }
-        }
+        }*/
     });
 }
 
@@ -184,10 +186,19 @@ function getTextById(id) {
     return txt;
 }
 
+function getReg(id) {
+    if (id == 'address') return new RegExp("[a-zA-Z0-9]{1,}[a-zA-Z\.0-9\ \'\,]{4,}");
+    if (id == 'email') return new RegExp("[a-zA-Z\.0-9]{3,}@[a-zA-Z\.0-9]{3,}");
+    return new RegExp("[a-zA-Z\-]{2,}");
+}
+
 function getTestById(id) {
     var el = document.getElementById(id);
-    let txt = el.getAttribute('test');
-    return txt;
+    let txt = el.getAttribute('value');
+
+    const reg = getReg(id);
+    if (txt == "" || txt == null) return false;
+    return reg.test(txt);
 }
 
 let intrvalID = null;
@@ -211,7 +222,12 @@ function fail(params) {
     return [topM, topColor, timerColor];
 }
 
-function addToast() {
+function errMsg(n) {
+    if (n == 2) return "Veuillez entrer des informations valides !";
+    return "Panier Vide !";
+}
+
+function addToast(err) {
     var lastToast = document.getElementById("toast");
     var m = document.querySelector("main");
     if (lastToast != null) {
@@ -232,7 +248,7 @@ function addToast() {
         'style',
         "color: black; font-size: 17px; padding-left: 15px; padding-bottom: 18px;",
     );
-    var desc = "Veuillez entrer des informations valides";
+    var desc = errMsg(err);
     var botTxt = document.createTextNode(desc);
     botDiv.appendChild(botTxt);
 
@@ -346,41 +362,52 @@ async function handleOrder() {
     let addresseTest = getTestById('address');
     let villeTest = getTestById('city');
     let mailTest = getTestById('email');
+    //console.log(prenom, "=", prenomTest, nom, '=', nomTest, addresseTest, ville, '=', villeTest, mailTest);
 
-    let userInfos = {
-        firstName: prenom,
-        lastName: nom,
-        address: addresse,
-        city: ville,
-        email: mail
-    };
-    let ids = []
-    for (let i = 0; i < localStorage.length; i++) {
-        let key = localStorage.key(i).split(" ");
-        let id = key[0];
-        ids.push(id);
-    };
-    var api = "http://localhost:3000/api/products/order";
-    let body = {
-        contact: userInfos,
-        products: ids
-    };
-    let response = await fetch(api, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(body)
-    });
+    if (formValid(prenomTest, nomTest, addresseTest, villeTest, mailTest)) {
+        let userInfos = {
+            firstName: prenom,
+            lastName: nom,
+            address: addresse,
+            city: ville,
+            email: mail
+        };
+        let ids = []
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i).split(" ");
+            let id = key[0];
+            ids.push(id);
+        };
+        var api = "http://localhost:3000/api/products/order";
+        if (ids.length == 0) {
+            addToast(1);
+        }
+        else {
+            let body = {
+                contact: userInfos,
+                products: ids
+            };
+            let response = await fetch(api, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(body)
+            });
 
-    if (response.ok) {
-        let data = await response.json();
-        var btn = document.getElementById('order');
-        localStorage.clear();
-        window.location.href = './confirmation.html?orderID=' + data["orderId"];
+            if (response.ok) {
+                let data = await response.json();
+                var btn = document.getElementById('order');
+                localStorage.clear();
+                window.location.href = './confirmation.html?orderID=' + data["orderId"];
+            }
+            else {
+                addToast(2);
+            }
+        }
     }
     else {
-        addToast();
+        addToast(2);
     }
 }
 

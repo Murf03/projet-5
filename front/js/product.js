@@ -144,25 +144,32 @@ function editPage(product) {
 
 function handleAddToCart(id) {
     let colors = document.getElementById("colors");
-    if (colors.value != null && colors.value != "") {
-        var qtity = document.getElementById("quantity").getAttribute("value");
-        var color = colors.getAttribute("value");
-
-        let k = id + " " + color;
-        let v = Number(localStorage.getItem(k));
-        if (v != null) {
-            v += Number(qtity);
-            localStorage.setItem(k, v);
-        }
-        else {
-            let key = id + " " + color;
-            let value = qtity;
-            localStorage.setItem(key, value);
-        }
-        addToast(true);
+    let qtite = document.getElementById("quantity");
+    if (qtite.value < 0 || qtite.value > 100) {
+        console.log(qtite.value);
+        addToast(false, true);
     }
     else {
-        addToast(false);
+        if (colors.value != null && colors.value != "") {
+            var qtity = document.getElementById("quantity").getAttribute("value");
+            var color = colors.getAttribute("value");
+
+            let k = id + " " + color;
+            let v = Number(localStorage.getItem(k));
+            if (v != null) {
+                v += Number(qtity);
+                localStorage.setItem(k, v);
+            }
+            else {
+                let key = id + " " + color;
+                let value = qtity;
+                localStorage.setItem(key, value);
+            }
+            addToast(true, false);
+        }
+        else {
+            addToast(false, false);
+        }
     }
 }
 
@@ -189,7 +196,7 @@ function fail(params) {
     return [topM, topColor, timerColor];
 }
 
-function addToast(isSuccess) {
+function addToast(isSuccess, isNegErr) {
     var lastToast = document.getElementById("toast");
     var m = document.querySelector("main > div > section > article");
     if (lastToast != null) {
@@ -197,11 +204,16 @@ function addToast(isSuccess) {
         m.removeChild(lastToast);
     }
     let data = [];
-    if (isSuccess) {
-        data = success();
+    if (isNegErr) {
+        data = fail();
     }
     else {
-        data = fail();
+        if (isSuccess) {
+            data = success();
+        }
+        else {
+            data = fail();
+        }
     }
     var topDiv = document.createElement('div');
     topDiv.setAttribute(
@@ -217,17 +229,22 @@ function addToast(isSuccess) {
         "color: black; font-size: 17px; padding-left: 15px; padding-bottom: 18px;",
     );
     var desc;
-    if (isSuccess) {
-        var qtity = Number(document.getElementById("quantity").getAttribute("value"));
-        var name = document.querySelector('title').text;
-        var colorsEl = document.getElementById("colors");
-        var colIndex = colorsEl.getAttribute('value');
-        var colors = colorsEl.getAttribute('colors').split(',');
-        var color = colors[colIndex];
-        desc = qtity + " " + name + " - couleur : " + color;
+    if (isNegErr) {
+        desc = "Vérifiez la quantité du produit !";
     }
     else {
-        desc = "Aucun élément n'a été ajouté au panier !";
+        if (isSuccess) {
+            var qtity = Number(document.getElementById("quantity").getAttribute("value"));
+            var name = document.querySelector('title').text;
+            var colorsEl = document.getElementById("colors");
+            var colIndex = colorsEl.getAttribute('value');
+            var colors = colorsEl.getAttribute('colors').split(',');
+            var color = colors[colIndex];
+            desc = qtity + " " + name + " - couleur : " + color;
+        }
+        else {
+            desc = "Aucun élément n'a été ajouté au panier !";
+        }
     }
     var botTxt = document.createTextNode(desc);
     botDiv.appendChild(botTxt);
